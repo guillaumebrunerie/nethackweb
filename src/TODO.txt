@@ -1,0 +1,10 @@
+- restarting
+- custom name
+- less hacky React rendering
+- separate library out
+- be able to add a count when dropping stuff
+- doprev_message/click message window: full screen it
+- possibility to have custom config file
+- possibility to configure shortcuts
+- auto save on page hide (?)
+- better indication that the bottom row is scrollable

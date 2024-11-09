@@ -1,0 +1,74 @@
+OPTIONS=!tutorial, autopickup, toptenwin, mouse_support, !help
+
+OPTIONS=color, hilite_pet, lit_corridor
+OPTIONS=standout, time, msg_window:f, boulder:0
+OPTIONS=pickup_type:$, autoquiver, autodig
+OPTIONS=pettype:cat, catname:Lirya, fruit:raspberry
+OPTIONS=!cmdassist, !bones, menucolors
+OPTIONS=pile_limit:2
+OPTIONS=IBMGraphics, dark_room
+OPTIONS=disclose:+i +a nv yg -c +o
+OPTIONS=force_invmenu
+OPTIONS=hitpointbar
+
+MENUCOLOR="blessed"=lightcyan
+MENUCOLOR=" holy"=lightcyan
+MENUCOLOR=" cursed"=orange
+MENUCOLOR="unholy"=orange
+MENUCOLOR="Yendor"=purple
+
+SYMBOLS=S_vodoor:-, S_hodoor:|, S_bars:#
+
+# Ensure changes will be shown for a few turns after they happen.
+OPTIONS=statushilites:10
+
+# Ability scores.
+OPTIONS=hilite_status:characteristics/up/green
+OPTIONS=hilite_status:characteristics/down/red
+
+# Carrying capacity
+OPTIONS=hilite_status:carrying-capacity/burdened/yellow
+OPTIONS=hilite_status:carrying-capacity/stressed/red
+OPTIONS=hilite_status:carrying-capacity/strained/red
+OPTIONS=hilite_status:carrying-capacity/overtaxed/red&inverse
+OPTIONS=hilite_status:carrying-capacity/overloaded/red&inverse
+
+# Percentage cutoffs for power.
+OPTIONS=hilite_status:power/100%/brightblue
+OPTIONS=hilite_status:power/<100%/blue
+OPTIONS=hilite_status:power/<50%/white
+OPTIONS=hilite_status:power-max/always/brightblue
+
+# Show when XL changes.
+OPTIONS=hilite_status:experience-level/up/cyan
+OPTIONS=hilite_status:experience-level/down/red
+
+# Show when AC changes.
+OPTIONS=hilite_status:armor-class/down/cyan
+OPTIONS=hilite_status:armor-class/up/red
+
+# Hunger
+OPTIONS=hilite_status:hunger/hungry/yellow
+OPTIONS=hilite_status:hunger/weak/red
+OPTIONS=hilite_status:hunger/fainting/red&inverse
+OPTIONS=hilite_status:hunger/fainted/red&inverse
+
+# Percentage cutoffs for hitpoints.
+OPTIONS=hilite_status:hitpoints/100%/brightgreen
+OPTIONS=hilite_status:hitpoints/<100%/green
+OPTIONS=hilite_status:hitpoints/<60%/yellow
+OPTIONS=hilite_status:hitpoints/<40%/red
+OPTIONS=hilite_status:hitpoints/<20%/red&inverse
+OPTIONS=hilite_status:hitpoints-max/always/brightgreen
+
+# Experience
+OPTIONS=hilite_status:experience/down/red
+
+# Troubles
+OPTIONS=hilite_status:condition/minor_troubles/yellow
+OPTIONS=hilite_status:condition/major_troubles/red&inverse
+
+# Hiding message
+MSGTYPE=hide "You swap places with .*"
+
+# End

@@ -1,0 +1,532 @@
+:root {
+	--fg: #d0cfcc;
+	color: var(--fg);
+	font-family: "DejaVu Mono";
+	--padding: 7px;
+	user-select: none;
+	overflow: hidden;
+	overscroll-behavior: none;
+	background: #333;
+	touch-action: none;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	height: 100dvh;
+	display: grid;
+	place-items: center;
+}
+
+#root {
+	width: 100%;
+	/* height: 100%; */
+	display: grid;
+	justify-items: center;
+	-webkit-tap-highlight-color: transparent;
+}
+
+#footer {
+	text-align: center;
+	a {
+		color: cyan;
+	}
+}
+
+#root > main {
+	--bg: #300a24;
+	outline: 1px solid grey;
+	background-color: var(--bg);
+	display: grid;
+	grid: auto minmax(0, min-content) auto auto auto / 1fr;
+	place-items: center;
+	max-height: 100dvh;
+	width: min(100vw, calc(80ch + 4 * var(--padding)));
+	padding: var(--padding);
+	position: relative;
+	white-space-collapse: preserve;
+	justify-items: stretch;
+	margin-bottom: 10px;
+}
+
+/** Scrollbars */
+
+::-webkit-scrollbar {
+	width: calc(var(--padding) - 0.5px);
+}
+
+::-webkit-scrollbar-track {
+	background: #222;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #555;
+}
+
+@media (hover: hover) {
+	::-webkit-scrollbar-thumb:hover {
+		background: #888;
+	}
+}
+
+/** Copyright message */
+
+.copyright {
+	position: absolute;
+	grid-row: 1;
+	grid-column: 1;
+	justify-self: start;
+	align-self: end;
+	padding: var(--padding);
+	white-space: normal;
+
+	.line {
+		padding-top: 2px;
+		padding-bottom: 2px;
+		padding-right: var(--padding);
+		padding-left: calc(2ch + var(--padding));
+		&:first-child {
+			padding-left: 0;
+		}
+	}
+}
+
+/** Message window */
+
+.message {
+	height: 3.6lh;
+	border: 0.5px solid grey;
+	padding: var(--padding);
+	overflow: auto;
+	display: flex;
+	flex-direction: column-reverse; /* Auto scroll to the bottom */
+	gap: 5px;
+	box-sizing: content-box;
+
+	.line,
+	.oldline {
+		font-size: 0.99em;
+	}
+
+	.oldline {
+		--fg: #555;
+	}
+}
+
+/** Map window */
+
+.map-container {
+	grid-column: 1;
+	grid-row: 2;
+	display: grid;
+	place-items: center;
+	overflow: auto;
+	height: 100%;
+	padding: var(--padding);
+	border: 0.5px solid grey;
+	touch-action: pinch-zoom;
+
+	& * {
+		scroll-margin: 50px;
+	}
+
+	&::-webkit-scrollbar {
+		width: 0px;
+		height: 0px;
+	}
+}
+
+.map {
+	overflow: auto;
+	--height: 2ch;
+
+	display: grid;
+	grid: repeat(24, var(--height)) / repeat(80, 1ch);
+	width: 80ch;
+	height: 48ch;
+
+	margin: -1px;
+
+	&.displayed {
+		outline: var(--padding) solid grey;
+	}
+}
+
+.cell {
+	&.clickable {
+		cursor: pointer;
+	}
+
+	@media (hover: hover) {
+		&.clickable:hover {
+			--bg: #444455;
+			background-color: var(--bg);
+		}
+	}
+
+	&.clickable:active {
+		--bg: #444455;
+		background-color: var(--bg);
+	}
+}
+
+/** Temporary windows */
+
+.temporary-windows {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 10;
+	width: 100vw;
+	height: 100dvh;
+	display: grid;
+	grid: auto / auto;
+	place-items: center;
+	pointer-events: none;
+	padding: calc(2 * var(--padding));
+
+	&.backdrop {
+		pointer-events: auto;
+		backdrop-filter: blur(0.7px);
+		height: 100%;
+	}
+}
+
+.text {
+	padding: var(--padding);
+	border: 0.5px solid grey;
+	max-width: 100%;
+	max-height: 100%;
+	z-index: 10;
+	overflow: auto;
+	background-color: #300a24f0;
+	white-space: pre;
+
+	.line {
+		padding-top: 2px;
+		padding-bottom: 2px;
+	}
+}
+
+/** Prompts */
+
+.prompt {
+	align-self: start;
+	justify-self: stretch;
+	padding: var(--padding);
+	border: 0.5px solid grey;
+	grid-column: 1;
+	grid-row: 2;
+	display: grid;
+	align-items: start;
+	grid: auto / auto;
+	top: -2px;
+
+	* {
+		grid-row: 1;
+		grid-column: 1;
+	}
+
+	.autocomplete {
+		color: #616161;
+		z-index: 1;
+	}
+	.line {
+		z-index: 2;
+	}
+
+	input {
+		background-color: transparent;
+		width: auto;
+		color: inherit;
+		border: none;
+		outline: none;
+		font: inherit;
+		padding: 0;
+		z-index: 1;
+	}
+}
+
+/** Menus */
+
+.menu {
+	padding: var(--padding);
+	border: 0.5px solid grey;
+	z-index: 10;
+
+	margin: calc(2 * var(--padding));
+	max-width: 100%;
+	max-height: 100%;
+	overflow: auto;
+	--bg: #300a24e0;
+	background-color: var(--bg);
+
+	.line {
+		padding-top: 2px;
+		padding-bottom: 2px;
+	}
+}
+
+.blocking {
+	border-color: #7474ff;
+	--bg: #1e0c33e0;
+	background-color: var(--bg);
+}
+
+.selected {
+	--bg: #444455;
+	background: var(--bg);
+}
+
+.menu_entry {
+	cursor: pointer;
+	background-color: var(--bg);
+	padding-left: 4ch;
+	text-indent: -4ch;
+
+	@media (hover: hover) {
+		&:hover {
+			--bg: #444455;
+		}
+	}
+
+	&:active {
+		--bg: #666;
+	}
+}
+
+kbd {
+	background-color: var(--bg);
+	cursor: pointer;
+	font: inherit;
+
+	@media (hover: hover) {
+		&:hover {
+			--bg: #444455;
+		}
+	}
+
+	&:active {
+		--bg: #666;
+	}
+}
+
+/** Status window */
+
+.status {
+	display: flex;
+	flex-wrap: wrap;
+	column-gap: 1ch;
+	row-gap: 3px;
+	border: 0.5px solid grey;
+	padding: var(--padding);
+	min-height: 3lh;
+}
+
+/** Mobile inputs */
+
+.main-inputs {
+	display: grid;
+	grid: auto / auto auto;
+	padding: var(--padding) 0;
+	place-items: center;
+	justify-content: space-around;
+
+	.shortcut-inputs {
+		display: grid;
+		grid: repeat(4, 40px) / repeat(3, 40px);
+		gap: 13.3px;
+	}
+
+	.direction_input {
+		--border-color: #74ff74;
+		--inactive-bg-color: #020;
+		--active-bg-color: #252;
+		position: relative;
+		width: 200px;
+		height: 200px;
+		display: grid;
+		place-items: center;
+
+		.label {
+			z-index: 2;
+			position: absolute;
+			font-size: 15px;
+			white-space: nowrap;
+			pointer-events: none;
+			transform: rotate(var(--angle)) translate(0, -65px)
+				rotate(calc(360deg - var(--angle)));
+		}
+
+		.center {
+			position: absolute;
+			display: grid;
+			place-items: center;
+			width: 60px;
+			height: 60px;
+			border-radius: 100%;
+			background: #1e0c33;
+			cursor: pointer;
+			font-size: 15px;
+
+			@media (hover: hover) {
+				&:hover {
+					background: #225;
+				}
+			}
+
+			&:active {
+				background: #225;
+			}
+		}
+
+		.corner {
+			--offset: -0.5px;
+			--size: 105px;
+			position: absolute;
+			width: calc(var(--size) - var(--offset));
+			height: calc(var(--size) - var(--offset));
+			--border-color: #7474ff;
+			--inactive-bg-color: #1e0c33;
+			--active-bg-color: #225;
+			border: 1px solid var(--border-color);
+			background-color: var(--inactive-bg-color);
+			display: grid;
+			border-radius: 10px;
+			flex-shrink: 0;
+			cursor: pointer;
+			padding: 15px;
+			box-sizing: border-box;
+
+			@media (hover: hover) {
+				&:hover {
+					background-color: var(--active-bg-color);
+				}
+			}
+
+			&:active {
+				background-color: var(--active-bg-color);
+			}
+
+			&.top {
+				top: 0;
+				align-items: start;
+				border-bottom-width: 0;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+
+			&.bottom {
+				bottom: 0;
+				align-items: end;
+				border-top-width: 0;
+				border-top-left-radius: 0;
+				border-top-right-radius: 0;
+			}
+
+			&.left {
+				left: 0;
+				justify-items: start;
+				border-right-width: 0;
+				border-top-right-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+
+			&.right {
+				right: 0;
+				justify-items: end;
+				border-left-width: 0;
+				border-top-left-radius: 0;
+				border-bottom-left-radius: 0;
+			}
+		}
+
+		svg {
+			--border-color: #74ff74;
+			--inactive-bg-color: #020;
+			--active-bg-color: #252;
+			fill: var(--inactive-bg-color);
+			stroke: var(--border-color);
+			stroke-width: 1px;
+			pointer-events: none;
+			z-index: 1;
+
+			path {
+				pointer-events: auto;
+
+				@media (hover: hover) {
+					&:hover {
+						fill: var(--active-bg-color);
+						cursor: pointer;
+					}
+				}
+
+				&:active {
+					fill: var(--active-bg-color);
+					cursor: pointer;
+				}
+			}
+		}
+	}
+}
+
+.simple_inputs {
+	padding: var(--padding);
+	overflow: scroll;
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	gap: 1ch;
+	padding-left: 10px;
+	padding-top: 10px;
+	padding-bottom: 0;
+
+	&::-webkit-scrollbar {
+		width: 0px;
+		height: 0px;
+	}
+}
+
+.simple_input {
+	width: 40px;
+	height: 40px;
+	--border-color: #7474ff;
+	--inactive-bg-color: #1e0c33;
+	--active-bg-color: #225;
+	border: 1px solid var(--border-color);
+	background-color: var(--inactive-bg-color);
+	display: grid;
+	place-items: center;
+	border-radius: 5px;
+	flex-shrink: 0;
+	cursor: pointer;
+
+	@media (hover: hover) {
+		&:hover {
+			background-color: var(--active-bg-color);
+		}
+	}
+
+	&:active {
+		background-color: var(--active-bg-color);
+	}
+
+	&.numlock {
+		font-size: 0.8em;
+	}
+
+	&.toggle,
+	&.numlock {
+		--border-color: #ee7474;
+		--inactive-bg-color: #431e0c;
+		--active-bg-color: #622;
+
+		&.active {
+			--inactive-bg-color: #833;
+			--active-bg-color: #a55;
+		}
+	}
+}
