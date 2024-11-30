@@ -138,8 +138,12 @@ const allInputs: Input[] = [
 	"r",
 
 	"t",
+	"m",
+	"F",
 	"w",
 	"W",
+	"x",
+	"X",
 	"Q",
 	"P",
 	"T",
@@ -147,8 +151,6 @@ const allInputs: Input[] = [
 
 	"o",
 	"I",
-	"x",
-	"X",
 	"?",
 	"*",
 	"\\",

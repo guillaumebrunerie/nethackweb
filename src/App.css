@@ -76,10 +76,9 @@ body {
 
 .copyright {
 	position: absolute;
-	grid-row: 1;
-	grid-column: 1;
-	align-self: end;
-	padding: var(--padding) calc(2 * var(--padding));
+	left: 0;
+	bottom: 0;
+	padding: calc(2 * var(--padding));
 	white-space: normal;
 
 	.line {
@@ -127,6 +126,7 @@ body {
 	padding: var(--padding);
 	border: 0.5px solid grey;
 	touch-action: pinch-zoom;
+	position: relative;
 
 	& * {
 		scroll-margin: 50px;
@@ -223,6 +223,7 @@ body {
 	align-items: start;
 	grid: auto / auto;
 	top: -2px;
+	z-index: 1;
 
 	* {
 		grid-row: 1;
