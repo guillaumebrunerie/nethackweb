@@ -78,9 +78,8 @@ body {
 	position: absolute;
 	grid-row: 1;
 	grid-column: 1;
-	justify-self: start;
 	align-self: end;
-	padding: var(--padding);
+	padding: var(--padding) calc(2 * var(--padding));
 	white-space: normal;
 
 	.line {
