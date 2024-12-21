@@ -68,6 +68,34 @@ const TemporaryWindows = ({ state }: { state: NetHack }) => {
 	);
 };
 
+const NethackConfig = ({}: {}) => {
+	const [isExpanded, setIsExpanded] = useState(false);
+	const expandOpt = () => {
+		setIsExpanded(!isExpanded);
+		if (isExpanded && (typeof localStorage !== 'undefined')) {
+			const nethackConfig = document.querySelector('textarea')?.value;
+			localStorage["NetHack_Options"] = nethackConfig;
+		}
+	  };
+
+	return (
+		<>
+			<div 
+			className="simple_input"
+			onClick={expandOpt}>Opt</div>
+			{isExpanded &&
+			<textarea 
+				rows={20}
+				onKeyDown={(e) => {
+					e.stopPropagation();
+				}}
+				defaultValue={(typeof localStorage !== 'undefined' ? localStorage["NetHack_Options"] : "")}
+			/>
+			}
+		</>
+	);
+};
+
 export const App = () => {
 	useEffect(() => {
 		history.pushState(null, "");
@@ -101,6 +129,7 @@ export const App = () => {
 					isNumLock={isNumLock}
 					setIsNumLock={setIsNumLock}
 				/>
+				<NethackConfig/>
 			</main>
 		</OnInputContext.Provider>
 	);
