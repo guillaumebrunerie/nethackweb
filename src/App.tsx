@@ -68,7 +68,7 @@ const TemporaryWindows = ({ state }: { state: NetHack }) => {
 	);
 };
 
-export const App = () => {
+const MainGame = () => {
 	useEffect(() => {
 		history.pushState(null, "");
 		const callback = (e: BeforeUnloadEvent) => {
@@ -103,5 +103,43 @@ export const App = () => {
 				/>
 			</main>
 		</OnInputContext.Provider>
+	);
+};
+
+export const App = () => {
+	const [startGame, setStartGame] = useState(false);
+
+	return (
+	<>
+	{startGame
+	?	<MainGame/>
+	:	<main>
+			<div className="prompt blocking">
+				<div className="line">
+					{"Enter player name: "}<input
+						className="extcmd"
+						type="text"
+						autoComplete="off"
+						autoCorrect="off"
+						autoCapitalize="none"
+						spellCheck="false"
+						defaultValue={(typeof localStorage !== 'undefined' ? localStorage["NetHack_Name"] : "")}
+						autoFocus
+						onChange={(e) => {
+							if (typeof localStorage !== 'undefined')
+								localStorage["NetHack_Name"] = e.target.value;
+						}}
+						onKeyDown={(e) => {
+							e.stopPropagation();
+							if (e.key == "Enter") {
+								setStartGame(true);
+							}
+						}}
+						/>
+				</div>
+			</div>
+		</main>
+	}
+	</>
 	);
 };
