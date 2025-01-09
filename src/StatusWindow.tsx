@@ -7,7 +7,6 @@ import {
 	iflags,
 } from "../lib/nethackInterface";
 import { Text, TextCA } from "./Common";
-import { useState } from "react";
 
 const convertAttr = (attr: string): Attr => {
 	switch (attr) {
@@ -51,13 +50,7 @@ const Conditions = ({ conditions }: { conditions: ConditionT[] }) => {
 	);
 };
 
-const Title = ({ 
-	status,
-	onClick 
-}: { 
-	status: Status,
-	onClick: () => void
-}) => {
+const Title = ({ status }: { status: Status }) => {
 	const title = status.values.BL_TITLE?.value;
 	if (!title) {
 		return null;
@@ -75,7 +68,7 @@ const Title = ({
 		Number(status.values.BL_HPMAX?.value);
 	const len = Math.floor(percentage * title.length);
 	return (
-		<span onClick={onClick}>
+		<span>
 			<Text>[</Text>
 			<Text color={color} attrs={["ATR_INVERSE", "ATR_BOLD"]}>
 				{title.slice(0, len)}
@@ -157,44 +150,12 @@ const Stat = ({
 	);
 };
 
-const TitleText = ({}: {}) => {
-	return (
-	<div className="prompt blocking">
-		<div className="line">
-			<input
-				className="chname extcmd"
-				type="text"
-				autoComplete="off"
-				autoCorrect="off"
-				autoCapitalize="none"
-				spellCheck="false"
-				autoFocus
-				defaultValue={(typeof localStorage !== 'undefined' ? localStorage["NetHack_Name"] : "")}
-				onKeyDown={(e) => {
-					e.stopPropagation();
-				}}
-				/>
-		</div>
-	</div>
-	);
-};
-
 export const StatusWindow = ({ status }: { status: Status }) => {
-	const [isExpanded, setIsExpanded] = useState(false);
-	const expandOpt = (): void => {
-		setIsExpanded(!isExpanded);
-		if (isExpanded && (typeof localStorage !== 'undefined')) {
-			const newNameEl = document.querySelector('.chname') as HTMLInputElement;
-			localStorage["NetHack_Name"]= newNameEl.value;
-		}
-	};
-	
 	return (
 		<div className="status">
 			{status.displayed && (
 				<>
-					{isExpanded && <TitleText/>}
-					<Title onClick={expandOpt} status={status} />
+					<Title status={status} />
 					<Stat name="St:" value={status.values["BL_STR"]} />
 					<Stat name="Dx:" value={status.values["BL_DX"]} />
 					<Stat name="Co:" value={status.values["BL_CO"]} />
