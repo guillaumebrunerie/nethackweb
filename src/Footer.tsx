@@ -5,11 +5,10 @@ export const Footer = () => {
 			<a href="https://guillaumebrunerie.github.io">Guillaume Brunerie</a>
 			.
 			<br />
-			Work in progress, last updated in November 2024.
+			Work in progress, last updated in January 2025.
 			<br /> Check out the project on{" "}
-			<a href="https://github.com/guillaumebrunerie/nethackweb">
-				GitHub
-			</a>!
+			<a href="https://github.com/guillaumebrunerie/nethackweb">GitHub</a>
+			!
 		</div>
 	);
 };
