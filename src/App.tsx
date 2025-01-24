@@ -94,6 +94,9 @@ const NethackConfig = ({}: {}) => {
 						onBlur={expandOpt}
 						onKeyDown={(e) => {
 							e.stopPropagation();
+							if (e.key = "Escape") {
+								expandOpt();
+							}
 						}}
 						onChange={(e) => {
 							localStorage["NetHack_Options"] = e.target.value;
