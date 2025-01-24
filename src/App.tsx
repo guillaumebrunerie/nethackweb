@@ -94,7 +94,7 @@ const NethackConfig = ({}: {}) => {
 						onBlur={expandOpt}
 						onKeyDown={(e) => {
 							e.stopPropagation();
-							if (e.key = "Escape") {
+							if (e.key == "Escape") {
 								expandOpt();
 							}
 						}}
