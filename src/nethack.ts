@@ -366,6 +366,17 @@ export type GetlinPrompt = {
 
 export type Prompt = NHPosKeyPrompt | YNPrompt | ExtCmdPrompt | GetlinPrompt;
 
+function getNethackRc() {
+	if (typeof localStorage !== 'undefined'){
+		if (!localStorage["NetHack_Options"]) {
+			localStorage["NetHack_Options"] = nethackrcContents;
+		}
+		return localStorage["NetHack_Options"];
+	}else{
+		return nethackrcContents;
+	}
+}
+
 export class NetHack implements NetHackInterface {
 	start(playerName: string) {
 		startNethack(this, {
@@ -377,7 +388,7 @@ export class NetHack implements NetHackInterface {
 		this.start("Fractal");
 	}
 	isLoading = true;
-	nethackrc = nethackrcContents;
+	nethackrc = getNethackRc();
 	currentWindowId = 0;
 	center = { x: 0, y: 0 };
 	messageWindow?: NHMessageWindow;
