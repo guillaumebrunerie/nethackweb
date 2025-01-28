@@ -5,7 +5,7 @@ import "./App.css";
 import { OnInputContext, useNethack, useOnInput } from "./useNethack";
 import { ESC, type NetHack, type NHWindow } from "./nethack";
 import { MessageWindow } from "./MessageWindow";
-import { Prompt } from "./Prompt";
+import { Prompt, GetNamePrompt } from "./Prompt";
 import { MapWindow } from "./MapWindow";
 import { MenuWindow } from "./MenuWindow";
 import { TextWindow } from "./TextWindow";
@@ -68,7 +68,7 @@ const TemporaryWindows = ({ state }: { state: NetHack }) => {
 	);
 };
 
-const MainGame = () => {
+export const App = () => {
 	useEffect(() => {
 		history.pushState(null, "");
 		const callback = (e: BeforeUnloadEvent) => {
@@ -80,11 +80,12 @@ const MainGame = () => {
 		};
 	}, []);
 
-	const [state, onInput] = useNethack();
+	const [gameStarted, startGame, state, onInput] = useNethack();
 	const [isNumLock, setIsNumLock] = useState(false);
 	return (
 		<OnInputContext.Provider value={onInput}>
 			<main>
+				{!gameStarted && <GetNamePrompt onEnter={startGame}/>}
 				<MessageWindow window_={state.messageWindow} />
 				<div className="map-container">
 					<MapWindow
@@ -94,8 +95,11 @@ const MainGame = () => {
 					{!state.mapWindow?.displayed && <CopyrightWindow />}
 				</div>
 				{state.prompt && <Prompt prompt={state.prompt} />}
-				<TemporaryWindows state={state} />
-				<StatusWindow status={state.status} />
+				{gameStarted && 
+				<>
+					<TemporaryWindows state={state} />
+					<StatusWindow status={state.status} />
+				</>}
 				<MobileInputs
 					triggerOnPointerDown={state.prompt?.type == "poskey"}
 					isNumLock={isNumLock}
@@ -103,43 +107,5 @@ const MainGame = () => {
 				/>
 			</main>
 		</OnInputContext.Provider>
-	);
-};
-
-export const App = () => {
-	const [startGame, setStartGame] = useState(false);
-
-	return (
-	<>
-	{startGame
-	?	<MainGame/>
-	:	<main>
-			<div className="prompt blocking">
-				<div className="line">
-					{"Enter player name: "}<input
-						className="extcmd"
-						type="text"
-						autoComplete="off"
-						autoCorrect="off"
-						autoCapitalize="none"
-						spellCheck="false"
-						defaultValue={(typeof localStorage !== 'undefined' ? localStorage["NetHack_Name"] : "")}
-						autoFocus
-						onChange={(e) => {
-							if (typeof localStorage !== 'undefined')
-								localStorage["NetHack_Name"] = e.target.value;
-						}}
-						onKeyDown={(e) => {
-							e.stopPropagation();
-							if (e.key == "Enter") {
-								setStartGame(true);
-							}
-						}}
-						/>
-				</div>
-			</div>
-		</main>
-	}
-	</>
 	);
 };
