@@ -126,7 +126,7 @@ export const GetNamePrompt = ({onEnter}: {onEnter: () => void}) => {
 	return (
 		<div className="prompt blocking">
 			<div className="line">
-				{"Enter player name: "}
+				{"Player name: "}
 				<input
 					className="extcmd"
 					type="text"
