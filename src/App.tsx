@@ -5,7 +5,7 @@ import "./App.css";
 import { OnInputContext, useNethack, useOnInput } from "./useNethack";
 import { ESC, type NetHack, type NHWindow } from "./nethack";
 import { MessageWindow } from "./MessageWindow";
-import { Prompt } from "./Prompt";
+import { Prompt, GetNamePrompt } from "./Prompt";
 import { MapWindow } from "./MapWindow";
 import { MenuWindow } from "./MenuWindow";
 import { TextWindow } from "./TextWindow";
@@ -80,11 +80,12 @@ export const App = () => {
 		};
 	}, []);
 
-	const [state, onInput] = useNethack();
+	const [gameStarted, startGame, state, onInput] = useNethack();
 	const [isNumLock, setIsNumLock] = useState(false);
 	return (
 		<OnInputContext.Provider value={onInput}>
 			<main>
+				{!gameStarted && <GetNamePrompt onEnter={startGame}/>}
 				<MessageWindow window_={state.messageWindow} />
 				<div className="map-container">
 					<MapWindow
@@ -94,8 +95,11 @@ export const App = () => {
 					{!state.mapWindow?.displayed && <CopyrightWindow />}
 				</div>
 				{state.prompt && <Prompt prompt={state.prompt} />}
-				<TemporaryWindows state={state} />
-				<StatusWindow status={state.status} />
+				{gameStarted && 
+				<>
+					<TemporaryWindows state={state} />
+					<StatusWindow status={state.status} />
+				</>}
 				<MobileInputs
 					triggerOnPointerDown={state.prompt?.type == "poskey"}
 					isNumLock={isNumLock}

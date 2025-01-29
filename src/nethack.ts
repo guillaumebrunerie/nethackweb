@@ -366,6 +366,17 @@ export type GetlinPrompt = {
 
 export type Prompt = NHPosKeyPrompt | YNPrompt | ExtCmdPrompt | GetlinPrompt;
 
+function getPlayerName() {
+	if (typeof localStorage !== 'undefined'){
+		if (!localStorage["NetHack_Name"]) {
+			localStorage["NetHack_Name"] = "Fractal";
+		}
+		return localStorage["NetHack_Name"];
+	}else{
+		return "Fractal";
+	}
+}
+
 export class NetHack implements NetHackInterface {
 	start(playerName: string) {
 		startNethack(this, {
@@ -374,7 +385,7 @@ export class NetHack implements NetHackInterface {
 		});
 	}
 	constructor(public onChange: () => void) {
-		this.start("Fractal");
+		this.start(getPlayerName());
 	}
 	isLoading = true;
 	nethackrc = nethackrcContents;
