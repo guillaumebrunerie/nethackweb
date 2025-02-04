@@ -122,6 +122,35 @@ const GetlinPrompt = ({ prompt, answer }: GetlinPromptType) => {
 	);
 };
 
+export const GetNamePrompt = ({onEnter}: {onEnter: () => void}) => {
+	return (
+		<div className="prompt blocking">
+			<div className="line">
+				{"Player name: "}
+				<input
+					className="extcmd"
+					type="text"
+					autoComplete="off"
+					autoCorrect="off"
+					autoCapitalize="none"
+					spellCheck="false"
+					defaultValue={(typeof localStorage !== 'undefined' ? localStorage["NetHack_Name"] : "")}
+					autoFocus
+					onChange={(e) => {
+						if (typeof localStorage !== 'undefined')
+							localStorage["NetHack_Name"] = e.target.value;
+					}}
+					onKeyDown={(e) => {
+						e.stopPropagation();
+						if (e.key == "Enter") {
+							onEnter();
+						}
+					}}
+				/>
+			</div>
+		</div>
+	);
+};
 export const Prompt = ({ prompt }: { prompt: PromptType }) => {
 	switch (prompt.type) {
 		case "yn":

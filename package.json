@@ -13,6 +13,7 @@
 		"@fontsource/dejavu-mono": "^5.1.0",
 		"@types/emscripten": "^1.39.13",
 		"@vitejs/plugin-react": "^4.3.3",
+		"dependencies": "^0.0.1",
 		"immer": "^10.1.1",
 		"prettier": "^3.3.3",
 		"react": "^18.3.1",
