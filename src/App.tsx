@@ -68,6 +68,47 @@ const TemporaryWindows = ({ state }: { state: NetHack }) => {
 	);
 };
 
+const NethackConfig = ({}: {}) => {
+	const [isExpanded, setIsExpanded] = useState(false);
+	const expandOpt = () => {
+		setIsExpanded(!isExpanded);
+	};
+
+	return (
+		<>
+			{!isExpanded && // this hack is needed to prevent textarea from double expanding
+				<div 
+					className="simple_input opts-button"
+					onClick={expandOpt}>Opt
+				</div>
+			}
+			{isExpanded &&
+				<div className="temporary-windows">
+					<textarea
+						className="game-config"
+						autoComplete="off"
+						autoCorrect="off"
+						autoCapitalize="none"
+						spellCheck="false"
+						autoFocus
+						onBlur={expandOpt}
+						onKeyDown={(e) => {
+							e.stopPropagation();
+							if (e.key == "Escape") {
+								expandOpt();
+							}
+						}}
+						onChange={(e) => {
+							localStorage["NetHack_Options"] = e.target.value;
+						}}
+						defaultValue={(typeof localStorage !== 'undefined' ? localStorage["NetHack_Options"] : "")}
+					/>
+				</div>
+			}
+		</>
+	);
+};
+
 export const App = () => {
 	useEffect(() => {
 		history.pushState(null, "");
@@ -85,6 +126,7 @@ export const App = () => {
 	return (
 		<OnInputContext.Provider value={onInput}>
 			<main>
+				<NethackConfig/>
 				<MessageWindow window_={state.messageWindow} />
 				<div className="map-container">
 					<MapWindow
@@ -100,7 +142,7 @@ export const App = () => {
 					triggerOnPointerDown={state.prompt?.type == "poskey"}
 					isNumLock={isNumLock}
 					setIsNumLock={setIsNumLock}
-				/>
+				/>	
 			</main>
 		</OnInputContext.Provider>
 	);

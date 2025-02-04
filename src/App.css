@@ -52,6 +52,27 @@ body {
 	margin-bottom: 10px;
 }
 
+/** Config */
+
+.game-config {
+	color: var(--fg);
+	--bg: #1e0c33e0;
+	background-color: var(--bg);
+	z-index: 10;
+	display: grid;
+	grid: auto / auto;
+	width: min(100vw, calc(80ch + 4 * var(--padding)));
+	height: min(100vw, calc(80ch + 4 * var(--padding)));
+	pointer-events: auto;
+}
+
+.opts-button {
+	position: absolute;
+	top: 20px;
+	right: 20px;
+	justify-items: end;
+}
+
 /** Scrollbars */
 
 ::-webkit-scrollbar {
