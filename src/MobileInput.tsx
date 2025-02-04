@@ -94,7 +94,17 @@ const MobileDirInput = ({
 
 type Input = string | { input: string; label: string };
 
-// { label: "⏎", input: "\n" },
+const control = (input: string) => ({
+	label: `^${input.toUpperCase()}`,
+	input: String.fromCharCode(
+		input.toLowerCase().charCodeAt(0) - "a".charCodeAt(0) + 1,
+	),
+});
+
+const meta = (input: string) => ({
+	label: `M-${input}`,
+	input: String.fromCharCode(input.charCodeAt(0) | 0x80),
+});
 
 const shortcutInputs: Input[] = [
 	":",
@@ -107,10 +117,10 @@ const shortcutInputs: Input[] = [
 
 	"g",
 	"d",
-	{ label: "^D", input: "\x04" },
+	control("D"),
 
 	"_",
-	"c",
+	meta("l"),
 ];
 
 const numberInputs: Input[] = [
@@ -131,6 +141,7 @@ const numberInputs: Input[] = [
 const allInputs: Input[] = [
 	"#",
 	"S",
+	"c",
 	"e",
 	"a",
 	"z",
@@ -155,7 +166,7 @@ const allInputs: Input[] = [
 	"*",
 	"\\",
 	"O",
-	{ label: "^X", input: "\x18" },
+	control("X"),
 	{ label: "Esc", input: ESC },
 ];
 
