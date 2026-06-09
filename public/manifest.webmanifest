@@ -1,0 +1,17 @@
+{
+	"name": "NetHack Web",
+	"short_name": "NetHack",
+	"description": "NetHack in the browser",
+	"start_url": "/",
+	"display": "standalone",
+	"background_color": "#1a1a2e",
+	"theme_color": "#1a1a2e",
+	"icons": [
+		{
+			"src": "/favicon.webp",
+			"sizes": "any",
+			"type": "image/webp",
+			"purpose": "any"
+		}
+	]
+}

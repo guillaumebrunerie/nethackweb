@@ -8,9 +8,8 @@ const useBlink = (isBlinking: boolean, delay: number) => {
 		if (!isBlinking) {
 			return;
 		}
-		setIsOn(true);
 		const timeout = setInterval(() => setIsOn((x) => !x), delay);
-		return () => clearTimeout(timeout);
+		return () => clearInterval(timeout);
 	}, [delay, isBlinking]);
 	return isBlinking && isOn;
 };
@@ -28,7 +27,7 @@ export const Text = ({
 	attrs?: Attr[];
 	children: React.ReactNode;
 	onClick?: (event: React.MouseEvent) => void;
-	ref_?: React.RefObject<HTMLSpanElement>;
+	ref_?: React.RefObject<HTMLSpanElement | null>;
 }) => {
 	const isBlinkOn = useBlink(!!attrs?.includes("ATR_BLINK"), 600);
 	const isInverse = attrs?.includes("ATR_INVERSE") || isBlinkOn;

@@ -79,11 +79,19 @@ const Title = ({ status }: { status: Status }) => {
 	);
 };
 
-const HP = ({ status }: { status: Status }) => {
+const HP = ({ status, compact }: { status: Status; compact?: boolean }) => {
 	const current = status.values.BL_HP;
 	const total = status.values.BL_HPMAX;
 	if (!current || !total) {
 		return null;
+	}
+	if (compact) {
+		return (
+			<b>
+				<TextCA colorAttr={current}>HP:{current.value}</TextCA>
+				<TextCA colorAttr={total}>/{total.value}</TextCA>
+			</b>
+		);
 	}
 	return (
 		<b>
@@ -101,11 +109,19 @@ const Gold = ({ status }: { status: Status }) => {
 	return <span>$:{gold.slice(11)}</span>;
 };
 
-const Pw = ({ status }: { status: Status }) => {
+const Pw = ({ status, compact }: { status: Status; compact?: boolean }) => {
 	const current = status.values.BL_ENE;
 	const total = status.values.BL_ENEMAX;
 	if (!current || !total) {
 		return null;
+	}
+	if (compact) {
+		return (
+			<b>
+				<TextCA colorAttr={current}>Pw:{current.value}</TextCA>
+				<TextCA colorAttr={total}>/{total.value}</TextCA>
+			</b>
+		);
 	}
 	return (
 		<b>
@@ -150,12 +166,19 @@ const Stat = ({
 	);
 };
 
-export const StatusWindow = ({ status }: { status: Status }) => {
+export const StatusWindow = ({
+	status,
+	compactStatus,
+}: {
+	status: Status;
+	compactStatus: boolean;
+}) => {
 	return (
-		<div className="status">
+		<div className={"status" + (compactStatus ? " compact" : "")}>
+
 			{status.displayed && (
 				<>
-					<Title status={status} />
+					{!compactStatus && <Title status={status} />}
 					<Stat name="St:" value={status.values["BL_STR"]} />
 					<Stat name="Dx:" value={status.values["BL_DX"]} />
 					<Stat name="Co:" value={status.values["BL_CO"]} />
@@ -165,8 +188,8 @@ export const StatusWindow = ({ status }: { status: Status }) => {
 					<Stat value={status.values["BL_ALIGN"]} />
 					<Stat value={status.values["BL_LEVELDESC"]} />
 					<Gold status={status} />
-					<HP status={status} />
-					<Pw status={status} />
+					<HP status={status} compact={compactStatus} />
+					<Pw status={status} compact={compactStatus} />
 					<Stat name="AC:" value={status.values["BL_AC"]} />
 					<Xp status={status} />
 					{flags().time && (

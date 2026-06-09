@@ -21,7 +21,7 @@ const GlyphC = memo(
 		isCliparound: boolean;
 		isNumLock: boolean;
 	}) => {
-		const ref = useRef<HTMLDivElement>(null);
+		const ref = useRef<HTMLSpanElement>(null);
 		useLayoutEffect(() => {
 			if (!ref.current || !isCliparound) {
 				return;
@@ -38,10 +38,11 @@ const GlyphC = memo(
 		if (isCursor) {
 			attrs.push("ATR_BLINK");
 		}
+		const cliparoundCls = isCliparound ? " cliparound" : "";
 		if (glyph.isChar) {
 			return (
 				<Text
-					className="cell"
+					className={"cell" + cliparoundCls}
 					color="CLR_WHITE"
 					attrs={[...attrs, glyph.attr]}
 					ref_={ref}
@@ -59,7 +60,7 @@ const GlyphC = memo(
 			}
 			return (
 				<Text
-					className="cell clickable"
+					className={"cell clickable" + cliparoundCls}
 					color={glyph.glyphinfo.gm.sym.color}
 					attrs={attrs}
 					onClick={() => {

@@ -305,8 +305,10 @@ export type NetHackInterface = {
 	putstr: (windowId: number, attr: Attr, str: string) => void;
 	putmixed: (windowId: number, attr: Attr, str: string) => void;
 	getNhEvent: () => void;
-	nhgetch: () => Promise<string>;
-	nhPosKey: () => Promise<string | { x: number; y: number; mod: number }>;
+	nhgetch: () => Promise<string | number>;
+	nhPosKey: () => Promise<
+		string | number | { x: number; y: number; mod: number }
+	>;
 
 	// B. High-level routines
 	printGlyph: (
@@ -386,7 +388,7 @@ export type NetHackInterface = {
 	markSynch: () => void;
 	waitSynch: () => Promise<void>;
 	delayOutput: () => Promise<void>;
-	askname: () => Promise<string>;
+	askname: () => Promise<void>;
 	cliparound: (x: number, y: number) => void;
 	numberPad: (state: number) => void;
 	suspendNhwindows: (str: string) => void;
@@ -427,7 +429,10 @@ const convertMethods = (i: NetHackInterface, syncFs: () => Promise<void>) => ({
 	putmixed: (windowId: number, attr: number, str: string) =>
 		i.putmixed(windowId, decodeAttr(attr), str),
 	getNhEvent: () => i.getNhEvent(),
-	nhgetch: async (): Promise<number> => (await i.nhgetch()).charCodeAt(0),
+	nhgetch: async (): Promise<number> => {
+		const r = await i.nhgetch();
+		return typeof r === "number" ? r : r.charCodeAt(0);
+	},
 	nhPoskey: async (
 		xPtr: number,
 		yPtr: number,
@@ -437,6 +442,8 @@ const convertMethods = (i: NetHackInterface, syncFs: () => Promise<void>) => ({
 		const result = await i.nhPosKey();
 		if (typeof result == "string") {
 			return result.charCodeAt(0);
+		} else if (typeof result == "number") {
+			return result;
 		} else {
 			setValue(xPtr, result.x, "i16");
 			setValue(yPtr, result.y, "i16");
@@ -503,7 +510,16 @@ const convertMethods = (i: NetHackInterface, syncFs: () => Promise<void>) => ({
 	updatePositionbar: (features: string) => i.updatePositionbar(features),
 
 	// C. Window Utility Routines
-	initNhwindows: (/* argc, argv */) => i.initNhwindows(),
+	initNhwindows: (/* argc, argv */) => {
+		i.initNhwindows();
+		try {
+			navigator.storage?.persist?.().catch(() => {
+				// Ignore — storage persistence is best-effort.
+			});
+		} catch {
+			// navigator.storage unavailable in this context.
+		}
+	},
 	exitNhwindows: async (str: string) => {
 		await syncFs();
 		i.exitNhwindows(str);
@@ -549,18 +565,22 @@ const convertMethods = (i: NetHackInterface, syncFs: () => Promise<void>) => ({
 		if (!menuItems) {
 			return 0;
 		}
-		const size = 12;
+		// struct mi = anything (8) + long count (4) + unsigned itemflags (4).
+		// anything is 8 bytes because the union includes int64/uint64.
+		const size = 16;
 		const p = malloc(size * menuItems.length);
 		setValue(menuList, p, "*");
 		menuItems.forEach((menuItem, i) => {
 			const { item, count, itemflags } = menuItem;
+			const base = p + i * size;
 			setValue(
-				p + i * size,
-				typeof item == "string" ? item.charCodeAt(0) : item,
+				base,
+				typeof item == "string" ? item.charCodeAt(0) : (item as number),
 				"*",
 			);
-			setValue(p + i * size + 4, count, "i32");
-			setValue(p + i * size + 8, itemflags || 0, "i32");
+			setValue(base + 4, 0, "i32");
+			setValue(base + 8, count, "i32");
+			setValue(base + 12, (itemflags as number) || 0, "i32");
 		});
 		return menuItems.length;
 	},
@@ -735,26 +755,88 @@ export const startNethack = (
 		LOG_RAW_CALLS = false,
 	} = {},
 ) => {
+	const isBonesFile = (name: string) => name.startsWith("bon");
+
+	const copyFileIfExists = (src: string, dst: string) => {
+		try {
+			const content = Module.FS.readFile(src);
+			Module.FS.writeFile(dst, content);
+		} catch {
+			// File doesn't exist yet -- first launch
+		}
+	};
+
+	const shuttleIntoSave = () => {
+		copyFileIfExists("/.nethackrc", "/save/.nethackrc");
+		copyFileIfExists("/record", "/save/record");
+		try {
+			const rootEntries = Module.FS.readdir("/");
+			for (const entry of rootEntries) {
+				if (isBonesFile(entry)) {
+					copyFileIfExists(`/${entry}`, `/save/${entry}`);
+				}
+			}
+		} catch {
+			// Root FS may not be readable yet
+		}
+		try {
+			const rootNames = new Set(
+				Module.FS.readdir("/").filter(isBonesFile),
+			);
+			const saveEntries = Module.FS.readdir("/save");
+			for (const entry of saveEntries) {
+				if (isBonesFile(entry) && !rootNames.has(entry)) {
+					Module.FS.unlink(`/save/${entry}`);
+				}
+			}
+		} catch {
+			// /save may be empty
+		}
+	};
+
+	const shuttleOutOfSave = (nethackrcFallback: string) => {
+		copyFileIfExists("/save/.nethackrc", "/.nethackrc");
+		try {
+			Module.FS.stat("/.nethackrc");
+		} catch {
+			Module.FS.writeFile("/.nethackrc", nethackrcFallback);
+		}
+		copyFileIfExists("/save/record", "/record");
+		try {
+			const saveEntries = Module.FS.readdir("/save");
+			for (const entry of saveEntries) {
+				if (isBonesFile(entry)) {
+					copyFileIfExists(`/save/${entry}`, `/${entry}`);
+				}
+			}
+		} catch {
+			// /save empty on first launch
+		}
+	};
+
 	const Module = {
 		arguments: commandLineArguments,
 		preRun: [
 			() => {
-				// Set up config file
-				if (interface_.nethackrc) {
-					Module.FS.writeFile("/.nethackrc", interface_.nethackrc);
-					Module.ENV.NETHACKOPTIONS = "@/.nethackrc";
-				}
-
-				// Set up save directory
+				// Mount IDBFS and pull persisted state. The shuttle into root
+				// has to wait until after runtime init: emscripten's
+				// --embed-file installs /record (and /perm, /logfile, etc.)
+				// during __wasm_call_ctors, and pre-existing files at those
+				// paths cause EEXIST. Deferring lets us overwrite the empty
+				// embedded files instead of racing them.
 				Module.FS.mkdir("/save");
 				Module.FS.mount(Module.IDBFS, {}, "/save");
-
-				// Sync filesystem from local storage
 				Module.addRunDependency("syncfs");
 				Module.FS.syncfs(true, (err) => {
 					if (err) {
 						throw err;
 					}
+					Module.ENV.NETHACKOPTIONS = "@/.nethackrc";
+					const previous = Module.onRuntimeInitialized;
+					Module.onRuntimeInitialized = () => {
+						shuttleOutOfSave(interface_.nethackrc);
+						if (previous) previous();
+					};
 					Module.removeRunDependency("syncfs");
 				});
 			},
@@ -765,9 +847,11 @@ export const startNethack = (
 		ENV: { NETHACKOPTIONS: string };
 		addRunDependency: typeof addRunDependency;
 		removeRunDependency: typeof removeRunDependency;
+		onRuntimeInitialized?: () => void;
 	};
 	const syncToLocalStorage = () =>
 		new Promise<void>((resolve, reject) => {
+			shuttleIntoSave();
 			FS.syncfs(false, (err) => {
 				if (err) {
 					reject(err);

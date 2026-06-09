@@ -78,9 +78,12 @@ If you are interested in the source code, keep reading.
 
 - `src` is an actual implementation of a windowing system based on the `lib`
   interface above. It is written in React and is meant to work both in the
-  browser and on mobile. There are a few restrictions for now:
+  browser and on mobile. Notes:
 
   - It only supports IBMGraphics (no tiles).
-  - The config file is hard coded (in `src/nethackrc.txt`).
-  - Saving is supported, but it does not save automatically if you just quit the
-    browser (or if your mobile OS decides to kill the tab).
+  - The default config is in `src/nethackrc.txt`; users can edit it in the
+    settings dialog and the value persists across reloads.
+  - Saves, high scores, bones, and the rc file persist via IDBFS in
+    IndexedDB. Save-on-hide fires on `visibilitychange` and `pagehide`, so
+    backgrounding the tab or PWA writes a save before the OS suspends it.
+  - Installs as a PWA (manifest + service worker) for offline play.

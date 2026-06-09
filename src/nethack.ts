@@ -14,7 +14,7 @@ import {
 	Condition,
 } from "../lib/nethackInterface";
 
-import nethackrcContents from "./nethackrc.txt?raw";
+import { loadSettings } from "./settings";
 
 export type NHMenuEntry = {
 	glyphInfo: GlyphInfo;
@@ -222,11 +222,13 @@ export class NHTextWindow {
 	clear() {
 		this.text = [];
 	}
-	async display(getChar: () => Promise<string>) {
+	async display(getChar: () => Promise<string>, blocking: boolean) {
 		this.displayed = true;
-		this.blocking = true;
-		await getChar();
-		this.blocking = false;
+		if (blocking) {
+			this.blocking = true;
+			await getChar();
+			this.blocking = false;
+		}
 	}
 	putStr(str: string, attr: Attr) {
 		this.text.push({ str, attr });
@@ -340,7 +342,10 @@ export class Status {
 export type Input =
 	| string
 	| { submit: true }
+	| { eof: true }
 	| { x: number; y: number; mod: number };
+
+export const EOF = { eof: true } as const;
 
 type NHPosKeyPrompt = {
 	type: "poskey";
@@ -374,10 +379,14 @@ export class NetHack implements NetHackInterface {
 		});
 	}
 	constructor(public onChange: () => void) {
-		this.start("Fractal");
+		const settings = loadSettings();
+		this.nethackrc = settings.nethackrc;
+		this.start(settings.playerName);
 	}
 	isLoading = true;
-	nethackrc = nethackrcContents;
+	savedAndExited = false;
+	gameEnded = false;
+	nethackrc: string;
 	currentWindowId = 0;
 	center = { x: 0, y: 0 };
 	messageWindow?: NHMessageWindow;
@@ -389,16 +398,48 @@ export class NetHack implements NetHackInterface {
 	// Input
 
 	resolveInput: (input: Input) => void = () => {};
+	waitingForInput = false;
+	inputQueue: Input[] = [];
+	eofPending = false;
 
-	onInput(input: Input) {
-		this.resolveInput(input);
+	onInput(input: Input | Input[]) {
+		const items = Array.isArray(input) ? input : [input];
+		for (const item of items) {
+			if (typeof item === "object" && "eof" in item) {
+				// Save-on-hide path: must be queued so the next getInput
+				// can resolve to EOF even if wasm wasn't currently awaiting.
+				this.eofPending = true;
+				this.inputQueue.push(item);
+			} else if (this.waitingForInput) {
+				this.inputQueue.push(item);
+			}
+			// Ordinary chars when nothing awaits are dropped, matching
+			// pre-queue behavior. Otherwise a stray keypress between
+			// sequential blocking dialogs (death → vanquished → rip →
+			// topten, or msg → yn → menu) dismisses the next one before
+			// it can render.
+		}
+		this.drainQueue();
+	}
+
+	private drainQueue() {
+		if (!this.waitingForInput) return;
+		if (this.inputQueue.length === 0) return;
+		const next = this.inputQueue.shift() as Input;
+		this.resolveInput(next);
 	}
 
 	async getInput(): Promise<Input> {
 		this.onChange();
+		if (this.eofPending) return { eof: true };
+		if (this.inputQueue.length > 0) {
+			return this.inputQueue.shift() as Input;
+		}
+		this.waitingForInput = true;
 		return new Promise<Input>((resolve_) => {
 			this.resolveInput = (input: Input) => {
 				window.removeEventListener("keydown", callback);
+				this.waitingForInput = false;
 				resolve_(input);
 				this.resolveInput = () => {};
 			};
@@ -406,6 +447,7 @@ export class NetHack implements NetHackInterface {
 				const resolve = (input: Input) => {
 					e.preventDefault();
 					window.removeEventListener("keydown", callback);
+					this.waitingForInput = false;
 					resolve_(input);
 					this.resolveInput = () => {};
 				};
@@ -440,31 +482,34 @@ export class NetHack implements NetHackInterface {
 
 	async getChar(): Promise<string> {
 		const r = await this.getInput();
-		if (typeof r == "string") {
-			return r;
-		} else {
-			return await this.getChar();
-		}
+		if (typeof r == "string") return r;
+		if ("eof" in r) return ESC;
+		return await this.getChar();
 	}
 
 	async getStr() {
 		const r = await this.getInput();
-		if (typeof r == "string" || "submit" in r) {
-			return r;
-		} else {
-			return await this.getChar();
-		}
+		if (typeof r == "string") return r;
+		if ("eof" in r) return ESC;
+		if ("submit" in r) return r;
+		return await this.getChar();
 	}
 
 	async getCharOrPos(): Promise<
-		string | { x: number; y: number; mod: number }
+		string | number | { x: number; y: number; mod: number }
 	> {
 		const r = await this.getInput();
 		if (typeof r == "object" && "submit" in r) {
 			return await this.getCharOrPos();
+		} else if (typeof r == "object" && "eof" in r) {
+			return -1;
 		} else {
 			return r;
 		}
+	}
+
+	triggerEof() {
+		this.onInput({ eof: true });
 	}
 
 	// A. Low-level routines
@@ -487,6 +532,7 @@ export class NetHack implements NetHackInterface {
 	}
 	getNhEvent() {}
 	async nhgetch() {
+		if (this.eofPending) return -1;
 		console.error("Not implemented (nhgetch)");
 		return "";
 	}
@@ -574,7 +620,7 @@ export class NetHack implements NetHackInterface {
 			win.putStr(line, "ATR_NONE");
 		}
 		console.log("DISPLAY");
-		await win.display(() => this.getChar());
+		await win.display(() => this.getChar(), true);
 		console.log("DONE");
 		this.destroyNhwindow(windowId);
 	}
@@ -598,6 +644,13 @@ export class NetHack implements NetHackInterface {
 		this.messageWindow?.putStr(str, "ATR_NONE");
 		this.mapWindow?.clear();
 		this.status.displayed = false;
+		// `eofPending` is the save-on-hide path; anything else here is a normal
+		// game end (death, quit, escape, ascend).
+		if (this.eofPending) {
+			this.savedAndExited = true;
+		} else {
+			this.gameEnded = true;
+		}
 		this.onChange();
 	}
 	createNhwindow(type: WinType) {
@@ -693,8 +746,12 @@ export class NetHack implements NetHackInterface {
 		return;
 	}
 	async askname() {
-		console.error("Not implemented (askname)");
-		return "wizard";
+		// NetHack calls askname when -u was rejected (e.g., name in `genericusers`
+		// from sysconf, default: play, player, game, games, nethack, nethacker,
+		// ec2-user). The shim's C signature is void, so a return value is discarded;
+		// the contract is to write svp.plname directly. Without this write,
+		// plnamesuffix() loops forever calling askname.
+		nethackGlobal.globals.svp.plname = loadSettings().playerName;
 	}
 	cliparound(x: number, y: number) {
 		if (this.mapWindow) {
@@ -726,12 +783,21 @@ export class NetHack implements NetHackInterface {
 	}
 }
 
-let nethack: NetHack;
+let nethack: NetHack | undefined;
 export const startNetHack = (onChange: (nethack: NetHack) => void) => {
 	if (nethack) {
-		nethack.onChange = () => onChange(nethack);
+		nethack.onChange = () => onChange(nethack!);
 	} else {
-		nethack = new NetHack(() => onChange(nethack));
+		nethack = new NetHack(() => onChange(nethack!));
 	}
 	return nethack;
+};
+
+// Drop the singleton and boot a fresh wasm + NetHack instance. The previous
+// wasm has already exited (death/quit/escape/ascend, or save-on-hide path)
+// by the time we get here, so we don't need to tear it down explicitly —
+// just stop holding a reference and let GC clean up.
+export const restartNetHack = (onChange: (nethack: NetHack) => void) => {
+	nethack = undefined;
+	return startNetHack(onChange);
 };

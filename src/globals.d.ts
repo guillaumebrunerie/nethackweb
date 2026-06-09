@@ -7,3 +7,5 @@ declare module "csstype" {
 declare module "@fontsource/dejavu-mono";
 
 declare module "eslint-plugin-react-hooks";
+
+declare const __BUILD_MONTH__: string;
