@@ -26,3 +26,7 @@ dist-ssr
 
 # Other
 upload.sh
+
+# Nix dev shell
+.emcache
+.direnv

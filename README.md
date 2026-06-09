@@ -1,6 +1,6 @@
 # NetHackWeb
 
-This is a browser/mobile implementation of NetHack, based on NetHack 3.7's
+This is a browser/mobile implementation of NetHack, based on NetHack 5.0's
 support for cross compilation to WebAssembly. Thank you in particular to
 apowers313 who did the ground work when it comes to cross compilation to
 WebAssembly (https://github.com/NetHack/NetHack/pull/385).
@@ -17,16 +17,18 @@ If you are interested in the source code, keep reading.
 
   ```
   make fetch-lua
-  ./sys/unix/setup.sh ./sys/unix/hints/linux.370
-  make CROSS_TO_WASM=1
+  ./sys/unix/setup.sh ./sys/unix/hints/linux.500
+  make wasm
   ```
 
   Then you will find `nethack.js` and `nethack.wasm` in `./targets/wasm`. You
-  might need to tweak things to make it work on your system.
+  might need to tweak things to make it work on your system. If you have Nix,
+  `nix develop` (via the included flake) provides emscripten, GNU coreutils,
+  groff, and the rest of the toolchain.
 
 - `lib` contains a Typescript interface to NetHack's APIs for supporting
   different windowing systems. For documentation, check
-  https://github.com/NetHack/NetHack/blob/NetHack-3.7/doc/window.txt.
+  https://github.com/NetHack/NetHack/blob/NetHack-5.0/doc/window.txt.
 
   The main function it exports is `startNethack` which takes as first argument
   an object containing a function field (or method) for each method supported by

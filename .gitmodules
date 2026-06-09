@@ -1,3 +1,4 @@
 [submodule "build/nethack"]
 	path = build/nethack
 	url = https://github.com/nethack/nethack.git
+	branch = NetHack-5.0

@@ -1,15 +1,19 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 
 cd build/nethack
 
 # Configure
-./sys/unix/setup.sh ./sys/unix/hints/linux.370
+./sys/unix/setup.sh ./sys/unix/hints/linux.500
 
 # Fetch Lua
 make fetch-lua
 
-# Build
-make CROSS_TO_WASM=1
+# Opt out of Nix's reproducible-build epoch so __DATE__ in the version banner
+# reflects the actual build date instead of 1980-01-01.
+unset SOURCE_DATE_EPOCH
+
+# Build (uses explicit wasm target which sets CROSS_TO_WASM=1 in src/)
+make wasm
 
 # Copy built files
 cp ./targets/wasm/nethack.{js,wasm} ..
